@@ -37,7 +37,7 @@ bot.on("message", msg => {
   }
 });
 
-bot.onText(/\/OneTime/, (msg, match) => {
+bot.onText(/\/onetime/, (msg, match) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, "Welcome", {
     reply_markup: {
@@ -66,7 +66,7 @@ bot.onText(/\/OneTime/, (msg, match) => {
   });
 });
 
-bot.onText(/\/Weekly/, (msg, match) => {
+bot.onText(/\/weekly/, (msg, match) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, "Welcome", {
     reply_markup: {
@@ -129,7 +129,6 @@ bot.on("callback_query", response => {
   if (data == "Today") {
     endingStart = startingStart;
   } else if (data == "7 Days") {
-    console.log("Inside 7 days");
     endingStart = moment()
       .add(7, "days")
       .format("YYYY-MM-DD");
