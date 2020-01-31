@@ -23,7 +23,7 @@ firebase.initializeApp(firebaseConfig);
 // Create 2 constansts, ref to hold the reference to the database
 const refOneTime = firebase.database().ref("One-Time");
 const refWeekly = firebase.database().ref("Weekly");
-
+const ref = firebase.database().ref("Events");
 // Listen for any kind of message. There are different kinds of
 // messages.
 bot.on("message", msg => {
@@ -142,38 +142,62 @@ bot.on("callback_query", response => {
     isWeekly = true;
   }
 
+  let displayText = "***************<pre>\n</pre>";
   if (isWeekly == false) {
-    refOneTime
+    ref
       .orderByChild("Start Date")
       .startAt(startingStart)
       .endAt(endingStart)
       .once("value")
       .then(snapshot => {
         snapshot.forEach(eventObj => {
-          bot.sendMessage(
-            response.message.chat.id,
-            JSON.stringify(eventObj.val())
-          );
+          displayText +=
+            "<b>Name: </b>" +
+            eventObj.val().Name +
+            "<pre>\n</pre><b>Start Time: </b>" +
+            eventObj.val()["Start Time"] +
+            "<pre>\n</pre><b>Start Date: </b>" +
+            eventObj.val()["Start Date"] +
+            "<pre>\n</pre><b>End Time: </b>" +
+            eventObj.val()["End Time"] +
+            "<pre>\n</pre><b>End Date: </b>" +
+            eventObj.val()["End Date"] +
+            "<pre>\n</pre><b>Venue: </b>" +
+            eventObj.val().Venue +
+            "<pre>\n</pre><b>Description: </b>" +
+            eventObj.val().Description;
+
+          bot.sendMessage(response.message.chat.id, displayText, {
+            parse_mode: "HTML"
+          });
         });
       });
   } else if (isWeekly == true) {
-    refWeekly
+    ref
       .orderByChild("Day")
       .equalTo(data)
       .once("value")
       .then(snapshot => {
         snapshot.forEach(eventObj => {
-          bot.sendMessage(
-            response.message.chat.id,
-            JSON.stringify(eventObj.val())
-          );
+          displayText +=
+            "<b>Name: </b>" +
+            eventObj.val().Name +
+            "<pre>\n</pre><b>Start Time: </b>" +
+            eventObj.val()["Start Time"] +
+            "<pre>\n</pre><b>End Time: </b>" +
+            eventObj.val()["End Time"] +
+            "<pre>\n</pre><b>Day: </b>" +
+            eventObj.val()["Day"] +
+            "<pre>\n</pre><b>Venue: </b>" +
+            eventObj.val().Venue +
+            "<pre>\n</pre><b>Description: </b>" +
+            eventObj.val().Description;
+          bot.sendMessage(response.message.chat.id, displayText, {
+            parse_mode: "HTML"
+          });
         });
       });
-    // refWeekly
   }
-
-  // bot.answerCallbackQuery(callbackQuery.id).then(()=>bot.sendMessage(msg.chat.id, "you clicked"));
-  //   });
 });
 
 // To push data into firebase
