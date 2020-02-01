@@ -5,7 +5,6 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const TelegramBot = require("node-telegram-bot-api");
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
-const firebase = require("firebase");
 const moment = require("moment");
 
 const {
@@ -239,7 +238,6 @@ bot.on("callback_query", response => {
     });
   } else if (isWeekly == true) {
     getEventsByDay(data, replies => {
-      console.log("ere");
       if (replies.length) {
         replies.forEach(reply => {
           bot.sendMessage(response.message.chat.id, reply, {
