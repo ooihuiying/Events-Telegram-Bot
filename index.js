@@ -19,27 +19,31 @@ const firebaseConfig = {
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 firebase.initializeApp(firebaseConfig);
-
-// Create 2 constansts, ref to hold the reference to the database
-const refOneTime = firebase.database().ref("One-Time");
-const refWeekly = firebase.database().ref("Weekly");
 const ref = firebase.database().ref("Events");
-// Listen for any kind of message. There are different kinds of
-// messages.
+
+const DISPLAY_TEXT_ONE_TIME =
+  "☘<i>~One Time Event~</i>☘<pre>\n</pre>" +
+  "<b>Name: </b> {NAME} <pre>\n</pre><b>Start Time: </b> {START TIME} <pre>\n</pre><b>Start Date: </b> {START DATE} <pre>\n</pre><b>End Time: </b> {END TIME} <pre>\n</pre><b>End Date: </b> {END DATE} <pre>\n</pre><b>Venue: </b> {VENUE} <pre>\n</pre><b>Description: </b> {DESCRIPTION}";
+
+const DISPLAY_TEXT_WEEKLY =
+  "🌓🌤<i>~Weekly~</i>🌤🌓<pre>\n</pre>" +
+  "<b>Name: </b> {NAME} <pre>\n</pre><b>Start Time: </b> {START TIME} <pre>\n</pre><b>End Time: </b> {END TIME} <pre>\n</pre><b>Day: </b> {DAY} <pre>\n</pre><b>Venue: </b> {VENUE} <pre>\n</pre><b>Description: </b> {DESCRIPTION}";
+
+// Listen for any kind of message.
 bot.on("message", msg => {
   const chatId = msg.chat.id;
   // send a message to the chat acknowledging receipt of their message
-  if (msg.text !== "/OneTime" && msg.text !== "/Weekly") {
+  if (!msg.entities) {
     bot.sendMessage(
       chatId,
-      "Hi, Type\n /OneTime to get the list of one-time events that is happening!\n /Weekly to get the list of weekly events"
+      "Hi, Welcome to RVRC events bot. Try out our commands."
     );
   }
 });
 
-bot.onText(/\/onetime/, (msg, match) => {
+bot.onText(/\/events/, msg => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "Welcome", {
+  bot.sendMessage(chatId, "Select one", {
     reply_markup: {
       one_time_keyboard: true,
       inline_keyboard: [
@@ -51,14 +55,20 @@ bot.onText(/\/onetime/, (msg, match) => {
         ],
         [
           {
-            text: "7 Days",
-            callback_data: "7 Days"
+            text: "Last Week",
+            callback_data: "Last Week"
           }
         ],
         [
           {
-            text: "14 Days",
-            callback_data: "14 Days"
+            text: "This Week",
+            callback_data: "This Week"
+          }
+        ],
+        [
+          {
+            text: "This Month",
+            callback_data: "This Month"
           }
         ]
       ]
@@ -66,9 +76,9 @@ bot.onText(/\/onetime/, (msg, match) => {
   });
 });
 
-bot.onText(/\/weekly/, (msg, match) => {
+bot.onText(/\/weekly/, msg => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "Welcome", {
+  bot.sendMessage(chatId, "Select one", {
     reply_markup: {
       one_time_keyboard: true,
       inline_keyboard: [
@@ -119,84 +129,151 @@ bot.onText(/\/weekly/, (msg, match) => {
   });
 });
 
-bot.on("callback_query", response => {
-  const data = response.data;
-  bot.sendMessage(response.message.chat.id, "You selected " + data);
+bot.onText(/\/allevents/, msg => {
+  ref.once("value").then(snapshot => {
+    snapshot.forEach(eventObj => {
+      const value = eventObj.val();
+      if (value.Day == undefined) {
+        // One Time event
+        const displayText = DISPLAY_TEXT_ONE_TIME.replace("{NAME}", value.Name)
+          .replace("{START TIME}", value["Start Time"])
+          .replace("{START DATE}", value["Start Date"])
+          .replace("{END TIME}", value["End Time"])
+          .replace("{END DATE}", value["End Date"])
+          .replace("{VENUE}", value.Venue)
+          .replace("{DESCRIPTION}", value.Description);
+        bot.sendMessage(msg.chat.id, displayText, {
+          parse_mode: "HTML"
+        });
+      } else {
+        // Weekly event
+        const displayText = DISPLAY_TEXT_WEEKLY.replace("{NAME}", value.Name)
+          .replace("{START TIME}", value["Start Time"])
+          .replace("{END TIME}", value["End Time"])
+          .replace("{DAY}", value["Day"])
+          .replace("{VENUE}", value.Venue)
+          .replace("{DESCRIPTION}", value.Description);
+        bot.sendMessage(msg.chat.id, displayText, {
+          parse_mode: "HTML"
+        });
+      }
+    });
+  });
+});
 
-  const startingStart = moment(new Date()).format("YYYY-MM-DD");
+// Implement /search name XXX
+// Implement /search category XXX
+
+// Check out firebase indexOn
+// Deploy
+
+// Extension
+// Description could change to link
+// Subscribe to daily feed?
+bot.onText(/\/search/, (msg, match) => {
+  const chatId = msg.chat.id;
+  console.log("match");
+  console.log(match.input);
+
+  // const keyword = match.input
+  bot.sendMessage(
+    chatId,
+    "Type '/search name {keyword}' to search by name. Type /search category {keyword}"
+  );
+});
+
+bot.on("callback_query", async response => {
+  const data = response.data;
+  await bot.sendMessage(response.message.chat.id, "You selected " + data);
+
+  let startingStart;
   let endingStart;
   let isWeekly = false;
-  if (data == "Today") {
+  if (data === "Today") {
+    startingStart = moment(new Date()).format("YYYY-MM-DD");
     endingStart = startingStart;
-  } else if (data == "7 Days") {
-    endingStart = moment()
-      .add(7, "days")
+  } else if (data === "This Week") {
+    // Start of the week
+    startingStart = moment()
+      .weekday(0)
       .format("YYYY-MM-DD");
-  } else if (data === "14 Days") {
+    // End of the week
     endingStart = moment()
-      .add(14, "days")
+      .weekday(7)
+      .format("YYYY-MM-DD");
+  } else if (data === "Last Week") {
+    // Start of Last week
+    startingStart = moment()
+      .weekday(-7)
+      .format("YYYY-MM-DD");
+    // End of Last Week
+    endingStart = moment()
+      .weekday(0)
+      .format("YYYY-MM-DD");
+  } else if (data === "This Month") {
+    startingStart = moment()
+      .startOf("month")
+      .format("YYYY-MM-DD");
+    endingStart = moment()
+      .endOf("month")
       .format("YYYY-MM-DD");
   } else {
     // Case of searching by Day for weekly events
     isWeekly = true;
   }
 
-  let displayText = "***************<pre>\n</pre>";
+  // Start searching Firebase
   if (isWeekly == false) {
-    ref
+    await ref
       .orderByChild("Start Date")
       .startAt(startingStart)
       .endAt(endingStart)
       .once("value")
       .then(snapshot => {
         snapshot.forEach(eventObj => {
-          displayText +=
-            "<b>Name: </b>" +
-            eventObj.val().Name +
-            "<pre>\n</pre><b>Start Time: </b>" +
-            eventObj.val()["Start Time"] +
-            "<pre>\n</pre><b>Start Date: </b>" +
-            eventObj.val()["Start Date"] +
-            "<pre>\n</pre><b>End Time: </b>" +
-            eventObj.val()["End Time"] +
-            "<pre>\n</pre><b>End Date: </b>" +
-            eventObj.val()["End Date"] +
-            "<pre>\n</pre><b>Venue: </b>" +
-            eventObj.val().Venue +
-            "<pre>\n</pre><b>Description: </b>" +
-            eventObj.val().Description;
-
+          const value = eventObj.val();
+          const displayText = DISPLAY_TEXT_ONE_TIME.replace(
+            "{NAME}",
+            value.Name
+          )
+            .replace("{START TIME}", value["Start Time"])
+            .replace("{START DATE}", value["Start Date"])
+            .replace("{END TIME}", value["End Time"])
+            .replace("{END DATE}", value["End Date"])
+            .replace("{VENUE}", value.Venue)
+            .replace("{DESCRIPTION}", value.Description);
           bot.sendMessage(response.message.chat.id, displayText, {
             parse_mode: "HTML"
           });
         });
       });
   } else if (isWeekly == true) {
-    ref
+    await ref
       .orderByChild("Day")
       .equalTo(data)
       .once("value")
       .then(snapshot => {
         snapshot.forEach(eventObj => {
-          displayText +=
-            "<b>Name: </b>" +
-            eventObj.val().Name +
-            "<pre>\n</pre><b>Start Time: </b>" +
-            eventObj.val()["Start Time"] +
-            "<pre>\n</pre><b>End Time: </b>" +
-            eventObj.val()["End Time"] +
-            "<pre>\n</pre><b>Day: </b>" +
-            eventObj.val()["Day"] +
-            "<pre>\n</pre><b>Venue: </b>" +
-            eventObj.val().Venue +
-            "<pre>\n</pre><b>Description: </b>" +
-            eventObj.val().Description;
+          const value = eventObj.val();
+          const displayText = DISPLAY_TEXT_WEEKLY.replace("{NAME}", value.Name)
+            .replace("{START TIME}", value["Start Time"])
+            .replace("{END TIME}", value["End Time"])
+            .replace("{DAY}", value["Day"])
+            .replace("{VENUE}", value.Venue)
+            .replace("{DESCRIPTION}", value.Description);
           bot.sendMessage(response.message.chat.id, displayText, {
             parse_mode: "HTML"
           });
         });
       });
   }
+  await bot.sendMessage(
+    response.message.chat.id,
+    "🌅<i>~No more Events!~</i>🌄",
+    {
+      parse_mode: "HTML"
+    }
+  );
 });
 
 // To push data into firebase
