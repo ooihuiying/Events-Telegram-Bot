@@ -22,7 +22,10 @@ async function getAllEvents(keyword, callback) {
     let replies = [];
     snapshot.forEach(eventObj => {
       const value = eventObj.val();
-      if (!keyword || (keyword && value.Name.includes(keyword))) {
+      if (
+        !keyword ||
+        (keyword && value.Name.toLowerCase().includes(keyword.toLowerCase()))
+      ) {
         if (value.Day == undefined) {
           replies.push(craftDisplayOneTimeMessage(value));
         } else {
@@ -41,7 +44,7 @@ async function getTagEvents(keyword, callback) {
       const value = eventObj.val();
       let exit = true;
       value["Tags"].forEach(elm => {
-        if (elm.includes(keyword)) {
+        if (elm.toLowerCase().includes(keyword.toLowerCase())) {
           exit = false;
         }
       });
