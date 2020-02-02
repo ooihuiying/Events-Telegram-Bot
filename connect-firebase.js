@@ -10,12 +10,15 @@ const firebaseConfig = {
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 firebase.initializeApp(firebaseConfig);
+const Event = require("./event")
+
 const ref = firebase.database().ref("Events");
 
 const {
   craftDisplayWeeklyMessage,
   craftDisplayOneTimeMessage
 } = require("./craftDisplayMessages");
+// TODO: Write wrapper class
 
 function getAllEvents() {
   return getEventsByKeyword("");
@@ -25,8 +28,8 @@ function getEventsByKeyword(keyword) {
   return ref.once("value").then(snapshot => {
     let events = [];
     snapshot.forEach(eventObj => {
-      let event = eventObj.val();
-      if (event.Name.toLowerCase().includes(keyword))
+      let event = Event.fromJSON(eventObj.val());
+      if (event.name.toLowerCase().includes(keyword))
         events.push(event);
     });
     return events;
@@ -37,8 +40,8 @@ function getEventsByTag(tag, callback) {
   return ref.once("value").then(snapshot => {
     let events = [];
     snapshot.forEach(eventObj => {
-      const event = eventObj.val();
-      if(event.Tags.any(eventTag => eventTag === tag)) {
+      const event = Event.fromJSON(eventObj.val());
+      if(event.tags.some(eventTag => eventTag === tag)) {
         events.push()
       }
     });
@@ -55,7 +58,7 @@ function getEventsByDates(startingStart, endingStart) {
     .then(snapshot => {
       let events = [];
       snapshot.forEach(eventObj => {
-        events.push(eventObj.val());
+        events.push(Event.fromJSON(eventObj.val()));
       });
       return events;
     });
@@ -69,11 +72,21 @@ function getEventsByDay(day) {
     .then(snapshot => {
       let events = [];
       snapshot.forEach(eventObj => {
-        const event = eventObj.val();
+        const event = Event.fromJSON(eventObj.val());
         events.push(event);
       });
       return events;
     });
+}
+
+function putNewEvent(event) {
+  const newEventRef = ref.push();
+  const eventData = event.toJSON();
+  return newEventRef.set(eventData);
+}
+
+function updateEvent(event, key) {
+
 }
 
 module.exports = {
@@ -81,5 +94,6 @@ module.exports = {
   getEventsByKeyword,
   getEventsByTag,
   getEventsByDates,
-  getEventsByDay
+  getEventsByDay,
+  putNewEvent
 };

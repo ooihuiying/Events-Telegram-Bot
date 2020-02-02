@@ -22,13 +22,9 @@ const {
   getEventsByDay
 } = require("./connect-firebase");
 
-const {
-  craftDisplayOneTimeMessage
-} = require("./craftDisplayMessages");
-
 function replyWithEvents(chatId, events) {
   if (events.length) {
-    let combinedMessage = events.reduce((acc, event) => acc + craftDisplayOneTimeMessage(event) + "\n\n", "");
+    let combinedMessage = events.reduce((acc, event) => acc + event.toString() + "\n\n", "");
     bot.sendMessage(chatId, combinedMessage, {
       parse_mode: "HTML"
     });
