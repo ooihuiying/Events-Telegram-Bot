@@ -14,13 +14,7 @@ const {
   END_OF_QUERY
 } = require("./displayMessagesConstants");
 
-const {
-  getAllEvents,
-  getEventsByKeyword,
-  getEventsByTag,
-  getEventsByDates,
-  getEventsByDay
-} = require("./connect-firebase");
+const fb = require("./connect-firebase").ref("Events");
 
 function replyWithEvents(chatId, events) {
   if (events.length) {
@@ -134,7 +128,7 @@ bot.onText(/\/weekly/, msg => {
 });
 
 bot.onText(/\/allevents/, msg => {
-  getAllEvents().then(events => replyWithEvents(msg.chat.id, events));
+  fb.getAllEvents().then(events => replyWithEvents(msg.chat.id, events));
 });
 
 bot.onText(/\/searchname/, (msg, match) => {
@@ -146,7 +140,7 @@ bot.onText(/\/searchname/, (msg, match) => {
     });
     return;
   }
-  getEventsByKeyword(keyword)
+  fb.getEventsByKeyword(keyword)
     .then(events => replyWithEvents(msg.chat.id, events));
 });
 
@@ -158,7 +152,7 @@ bot.onText(/\/searchtag/, (msg, match) => {
     });
     return;
   }
-  getEventsByTag(keyword)
+  fb.getEventsByTag(keyword)
     .then(events => replyWithEvents(msg.chat.id, events));
 });
 
@@ -204,10 +198,10 @@ bot.on("callback_query", response => {
 
   // Start searching Firebase
   if (isWeekly === false) {
-    getEventsByDates(startingStart, endingStart)
+    fb.getEventsByDates(startingStart, endingStart)
       .then(events => replyWithEvents(response.message.chat.id, events));
   } else if (isWeekly === true) {
-    getEventsByDay(data)
+    fb.getEventsByDay(data)
       .then(events => replyWithEvents(response.message.chat.id, events));
   }
 });

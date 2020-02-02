@@ -1,4 +1,6 @@
+const Event = require("./event")
 const firebase = require("firebase");
+
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "rvrc-events-bot.firebaseapp.com",
@@ -9,91 +11,89 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_API_ID,
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
+
 firebase.initializeApp(firebaseConfig);
-const Event = require("./event")
 
-const ref = firebase.database().ref("Events");
+/**
+ * Wrapper class to interface with firebase
+ */
+class FirebaseWrapper {
+  constructor(path) {
+    this._ref = firebase.database().ref(path);
+  }
 
-const {
-  craftDisplayWeeklyMessage,
-  craftDisplayOneTimeMessage
-} = require("./craftDisplayMessages");
-// TODO: Write wrapper class
+  static ref(path) {
+    return new FirebaseWrapper(path);
+  }
 
-function getAllEvents() {
-  return getEventsByKeyword("");
-}
+  getAllEvents() {
+    return this.getEventsByKeyword("");
+  }
 
-function getEventsByKeyword(keyword) {
-  return ref.once("value").then(snapshot => {
-    let events = [];
-    snapshot.forEach(eventObj => {
-      let event = Event.fromJSON(eventObj.val());
-      if (event.name.toLowerCase().includes(keyword))
-        events.push(event);
-    });
-    return events;
-  });
-}
-
-function getEventsByTag(tag, callback) {
-  return ref.once("value").then(snapshot => {
-    let events = [];
-    snapshot.forEach(eventObj => {
-      const event = Event.fromJSON(eventObj.val());
-      if(event.tags.some(eventTag => eventTag === tag)) {
-        events.push()
-      }
-    });
-    return events;
-  });
-}
-
-function getEventsByDates(startingStart, endingStart) {
-  return ref
-    .orderByChild("Start Date")
-    .startAt(startingStart)
-    .endAt(endingStart)
-    .once("value")
-    .then(snapshot => {
+  getEventsByKeyword(keyword) {
+    return this._ref.once("value").then(snapshot => {
       let events = [];
       snapshot.forEach(eventObj => {
-        events.push(Event.fromJSON(eventObj.val()));
+        let event = Event.fromJSON(eventObj.val());
+        if (event.name.toLowerCase().includes(keyword))
+          events.push(event);
       });
       return events;
-    });
-}
+    }).catch(console.error);
+  }
 
-function getEventsByDay(day) {
-  return ref
-    .orderByChild("Day")
-    .equalTo(day)
-    .once("value")
-    .then(snapshot => {
+  getEventsByTag(tag, callback) {
+    return this._ref.once("value").then(snapshot => {
       let events = [];
       snapshot.forEach(eventObj => {
         const event = Event.fromJSON(eventObj.val());
-        events.push(event);
+        if(event.tags.some(eventTag => eventTag === tag)) {
+          events.push()
+        }
       });
       return events;
     });
+  }
+
+  getEventsByDates(startingStart, endingStart) {
+    return this._ref
+      .orderByChild("Start Date")
+      .startAt(startingStart)
+      .endAt(endingStart)
+      .once("value")
+      .then(snapshot => {
+        let events = [];
+        snapshot.forEach(eventObj => {
+          events.push(Event.fromJSON(eventObj.val()));
+        });
+        return events;
+      });
+  }
+
+  getEventsByDay(day) {
+    return this._ref
+      .orderByChild("Day")
+      .equalTo(day)
+      .once("value")
+      .then(snapshot => {
+        let events = [];
+        snapshot.forEach(eventObj => {
+          const event = Event.fromJSON(eventObj.val());
+          events.push(event);
+        });
+        return events;
+      });
+  }
+
+  putNewEvent(event) {
+    const newEventRef = this._ref.push();
+    const eventData = event.toJSON();
+    return newEventRef.set(eventData);
+  }
+
+  updateEvent(event, key) {
+
+  }
 }
 
-function putNewEvent(event) {
-  const newEventRef = ref.push();
-  const eventData = event.toJSON();
-  return newEventRef.set(eventData);
-}
-
-function updateEvent(event, key) {
-
-}
-
-module.exports = {
-  getAllEvents,
-  getEventsByKeyword,
-  getEventsByTag,
-  getEventsByDates,
-  getEventsByDay,
-  putNewEvent
-};
+module.exports = FirebaseWrapper;
