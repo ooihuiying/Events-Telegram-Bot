@@ -16,10 +16,29 @@ const {
 
 const {
   getAllEvents,
-  getTagEvents,
+  getEventsByKeyword,
+  getEventsByTag,
   getEventsByDates,
   getEventsByDay
 } = require("./connect-firebase");
+
+const {
+  craftDisplayOneTimeMessage
+} = require("./craftDisplayMessages");
+
+function replyWithEvents(chatId, events) {
+  if (events.length) {
+    let combinedMessage = events.reduce((acc, event) => acc + craftDisplayOneTimeMessage(event) + "\n\n", "");
+    bot.sendMessage(chatId, combinedMessage, {
+      parse_mode: "HTML"
+    });
+
+  } else {
+    bot.sendMessage(chatId, END_OF_QUERY, {
+      parse_mode: "HTML"
+    });
+  }
+}
 
 // Listen for any kind of message.
 bot.on("message", msg => {
@@ -118,20 +137,8 @@ bot.onText(/\/weekly/, msg => {
   });
 });
 
-bot.onText(/\/allevents/, async msg => {
-  getAllEvents("", replies => {
-    if (replies.length) {
-      replies.forEach(reply => {
-        bot.sendMessage(msg.chat.id, reply, {
-          parse_mode: "HTML"
-        });
-      });
-    } else {
-      bot.sendMessage(msg.chat.id, END_OF_QUERY, {
-        parse_mode: "HTML"
-      });
-    }
-  });
+bot.onText(/\/allevents/, msg => {
+  getAllEvents().then(events => replyWithEvents(msg.chat.id, events));
 });
 
 bot.onText(/\/searchname/, (msg, match) => {
@@ -143,19 +150,8 @@ bot.onText(/\/searchname/, (msg, match) => {
     });
     return;
   }
-  getAllEvents(keyword, replies => {
-    if (replies.length) {
-      replies.forEach(reply => {
-        bot.sendMessage(msg.chat.id, reply, {
-          parse_mode: "HTML"
-        });
-      });
-    } else {
-      bot.sendMessage(msg.chat.id, END_OF_QUERY, {
-        parse_mode: "HTML"
-      });
-    }
-  });
+  getEventsByKeyword(keyword)
+    .then(events => replyWithEvents(msg.chat.id, events));
 });
 
 bot.onText(/\/searchtag/, (msg, match) => {
@@ -166,19 +162,8 @@ bot.onText(/\/searchtag/, (msg, match) => {
     });
     return;
   }
-  getTagEvents(keyword, replies => {
-    if (replies.length) {
-      replies.forEach(reply => {
-        bot.sendMessage(msg.chat.id, reply, {
-          parse_mode: "HTML"
-        });
-      });
-    } else {
-      bot.sendMessage(msg.chat.id, END_OF_QUERY, {
-        parse_mode: "HTML"
-      });
-    }
-  });
+  getEventsByTag(keyword)
+    .then(events => replyWithEvents(msg.chat.id, events));
 });
 
 bot.on("callback_query", response => {
@@ -222,33 +207,11 @@ bot.on("callback_query", response => {
   }
 
   // Start searching Firebase
-  if (isWeekly == false) {
-    getEventsByDates(startingStart, endingStart, replies => {
-      if (replies.length) {
-        replies.forEach(reply => {
-          bot.sendMessage(response.message.chat.id, reply, {
-            parse_mode: "HTML"
-          });
-        });
-      } else {
-        bot.sendMessage(response.message.chat.id, END_OF_QUERY, {
-          parse_mode: "HTML"
-        });
-      }
-    });
-  } else if (isWeekly == true) {
-    getEventsByDay(data, replies => {
-      if (replies.length) {
-        replies.forEach(reply => {
-          bot.sendMessage(response.message.chat.id, reply, {
-            parse_mode: "HTML"
-          });
-        });
-      } else {
-        bot.sendMessage(response.message.chat.id, END_OF_QUERY, {
-          parse_mode: "HTML"
-        });
-      }
-    });
+  if (isWeekly === false) {
+    getEventsByDates(startingStart, endingStart)
+      .then(events => replyWithEvents(response.message.chat.id, events));
+  } else if (isWeekly === true) {
+    getEventsByDay(data)
+      .then(events => replyWithEvents(response.message.chat.id, events));
   }
 });

@@ -17,79 +17,69 @@ const {
   craftDisplayOneTimeMessage
 } = require("./craftDisplayMessages");
 
-async function getAllEvents(keyword, callback) {
-  await ref.once("value").then(snapshot => {
-    let replies = [];
+function getAllEvents() {
+  return getEventsByKeyword("");
+}
+
+function getEventsByKeyword(keyword) {
+  return ref.once("value").then(snapshot => {
+    let events = [];
     snapshot.forEach(eventObj => {
-      const value = eventObj.val();
-      if (
-        !keyword ||
-        (keyword && value.Name.toLowerCase().includes(keyword.toLowerCase()))
-      ) {
-        if (value.Day == undefined) {
-          replies.push(craftDisplayOneTimeMessage(value));
-        } else {
-          replies.push(craftDisplayWeeklyMessage(value));
-        }
-      }
+      let event = eventObj.val();
+      if (event.Name.toLowerCase().includes(keyword))
+        events.push(event);
     });
-    callback(replies);
+    return events;
   });
 }
 
-async function getTagEvents(keyword, callback) {
-  await ref.once("value").then(snapshot => {
-    let replies = [];
+function getEventsByTag(tag, callback) {
+  return ref.once("value").then(snapshot => {
+    let events = [];
     snapshot.forEach(eventObj => {
-      const value = eventObj.val();
-      let exit = true;
-      value["Tags"].forEach(elm => {
-        if (elm.toLowerCase().includes(keyword.toLowerCase())) {
-          exit = false;
-        }
-      });
-      if (exit === true) return;
-      if (value.Day == undefined) {
-        replies.push(craftDisplayOneTimeMessage(value));
-      } else {
-        replies.push(craftDisplayWeeklyMessage(value));
+      const event = eventObj.val();
+      if(event.Tags.any(eventTag => eventTag === tag)) {
+        events.push()
       }
     });
-    callback(replies);
+    return events;
   });
 }
 
-async function getEventsByDates(startingStart, endingStart, callback) {
-  ref
+function getEventsByDates(startingStart, endingStart) {
+  return ref
     .orderByChild("Start Date")
     .startAt(startingStart)
     .endAt(endingStart)
     .once("value")
     .then(snapshot => {
-      let replies = [];
+      let events = [];
       snapshot.forEach(eventObj => {
-        const value = eventObj.val();
-        replies.push(craftDisplayOneTimeMessage(value));
+        events.push(eventObj.val());
       });
-      callback(replies);
+      return events;
     });
 }
 
-async function getEventsByDay(day, callback) {
-  ref
+function getEventsByDay(day) {
+  return ref
     .orderByChild("Day")
     .equalTo(day)
     .once("value")
     .then(snapshot => {
-      let replies = [];
+      let events = [];
       snapshot.forEach(eventObj => {
-        const value = eventObj.val();
-        replies.push(craftDisplayWeeklyMessage(value));
+        const event = eventObj.val();
+        events.push(event);
       });
-      callback(replies);
+      return events;
     });
 }
-module.exports.getAllEvents = getAllEvents;
-module.exports.getTagEvents = getTagEvents;
-module.exports.getEventsByDates = getEventsByDates;
-module.exports.getEventsByDay = getEventsByDay;
+
+module.exports = {
+  getAllEvents,
+  getEventsByKeyword,
+  getEventsByTag,
+  getEventsByDates,
+  getEventsByDay
+};
