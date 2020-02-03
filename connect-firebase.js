@@ -1,4 +1,6 @@
+const Event = require("./event")
 const firebase = require("firebase");
+
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "rvrc-events-bot.firebaseapp.com",
@@ -9,87 +11,89 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_API_ID,
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
+
 firebase.initializeApp(firebaseConfig);
-const ref = firebase.database().ref("Events");
 
-const {
-  craftDisplayWeeklyMessage,
-  craftDisplayOneTimeMessage
-} = require("./craftDisplayMessages");
+/**
+ * Wrapper class to interface with firebase
+ */
+class FirebaseWrapper {
+  constructor(path) {
+    this._ref = firebase.database().ref(path);
+  }
 
-async function getAllEvents(keyword, callback) {
-  await ref.once("value").then(snapshot => {
-    let replies = [];
-    snapshot.forEach(eventObj => {
-      const value = eventObj.val();
-      if (
-        !keyword ||
-        (keyword && value.Name.toLowerCase().includes(keyword.toLowerCase()))
-      ) {
-        if (value.Day == undefined) {
-          replies.push(craftDisplayOneTimeMessage(value));
-        } else {
-          replies.push(craftDisplayWeeklyMessage(value));
-        }
-      }
-    });
-    callback(replies);
-  });
-}
+  static ref(path) {
+    return new FirebaseWrapper(path);
+  }
 
-async function getTagEvents(keyword, callback) {
-  await ref.once("value").then(snapshot => {
-    let replies = [];
-    snapshot.forEach(eventObj => {
-      const value = eventObj.val();
-      let exit = true;
-      value["Tags"].forEach(elm => {
-        if (elm.toLowerCase().includes(keyword.toLowerCase())) {
-          exit = false;
-        }
-      });
-      if (exit === true) return;
-      if (value.Day == undefined) {
-        replies.push(craftDisplayOneTimeMessage(value));
-      } else {
-        replies.push(craftDisplayWeeklyMessage(value));
-      }
-    });
-    callback(replies);
-  });
-}
+  getAllEvents() {
+    return this.getEventsByKeyword("");
+  }
 
-async function getEventsByDates(startingStart, endingStart, callback) {
-  ref
-    .orderByChild("Start Date")
-    .startAt(startingStart)
-    .endAt(endingStart)
-    .once("value")
-    .then(snapshot => {
-      let replies = [];
+  getEventsByKeyword(keyword) {
+    return this._ref.once("value").then(snapshot => {
+      let events = [];
       snapshot.forEach(eventObj => {
-        const value = eventObj.val();
-        replies.push(craftDisplayOneTimeMessage(value));
+        let event = Event.fromJSON(eventObj.val());
+        if (event.name.toLowerCase().includes(keyword))
+          events.push(event);
       });
-      callback(replies);
+      return events;
+    }).catch(console.error);
+  }
+
+  getEventsByTag(tag, callback) {
+    return this._ref.once("value").then(snapshot => {
+      let events = [];
+      snapshot.forEach(eventObj => {
+        const event = Event.fromJSON(eventObj.val());
+        if(event.tags.some(eventTag => eventTag === tag)) {
+          events.push()
+        }
+      });
+      return events;
     });
+  }
+
+  getEventsByDates(startingStart, endingStart) {
+    return this._ref
+      .orderByChild("Start Date")
+      .startAt(startingStart)
+      .endAt(endingStart)
+      .once("value")
+      .then(snapshot => {
+        let events = [];
+        snapshot.forEach(eventObj => {
+          events.push(Event.fromJSON(eventObj.val()));
+        });
+        return events;
+      });
+  }
+
+  getEventsByDay(day) {
+    return this._ref
+      .orderByChild("Day")
+      .equalTo(day)
+      .once("value")
+      .then(snapshot => {
+        let events = [];
+        snapshot.forEach(eventObj => {
+          const event = Event.fromJSON(eventObj.val());
+          events.push(event);
+        });
+        return events;
+      });
+  }
+
+  putNewEvent(event) {
+    const newEventRef = this._ref.push();
+    const eventData = event.toJSON();
+    return newEventRef.set(eventData);
+  }
+
+  updateEvent(event, key) {
+
+  }
 }
 
-async function getEventsByDay(day, callback) {
-  ref
-    .orderByChild("Day")
-    .equalTo(day)
-    .once("value")
-    .then(snapshot => {
-      let replies = [];
-      snapshot.forEach(eventObj => {
-        const value = eventObj.val();
-        replies.push(craftDisplayWeeklyMessage(value));
-      });
-      callback(replies);
-    });
-}
-module.exports.getAllEvents = getAllEvents;
-module.exports.getTagEvents = getTagEvents;
-module.exports.getEventsByDates = getEventsByDates;
-module.exports.getEventsByDay = getEventsByDay;
+module.exports = FirebaseWrapper;
