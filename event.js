@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 class Event {
   constructor(name, tags, start, end, venue, description, type) {
     this.name = name;
@@ -7,6 +9,8 @@ class Event {
     this.venue = venue;
     this.description = description;
     this.type = type || "once"
+    // this.creator;
+    // this.createdDate;
   }
 
   static fromJSON(jsonObject) {
@@ -36,6 +40,32 @@ class Event {
       "description": this.description,
       "type": this.type
     };
+  }
+
+  setKey(key) {
+    this.key = key;
+  }
+
+  format() {
+    // TODO
+    const title = `<b><u>${this.name}</u></b>\n`;
+    let start = moment(this.start);
+    let end = moment(this.end);
+    let duration = "";
+    if (start.isSame(end, "day")) {
+      duration = `${start.format("MMMM Do dddd h:mm a")} - ${end.format("h:mm a")}\n`;
+    } else {
+      duration = `${start.format("MMMM Do dddd h:mm a")} - ${end.format("MMMM Do dddd h:mm a")}\n`;
+    }
+    return  title + duration +
+      `Venue: ${this.venue}\n` +
+      `Description: ${this.description}\n` +
+      `Tags: ${this.tags.join(", ")}`;
+  }
+
+  formatShort() {
+    // TODO
+    return "";
   }
 }
 
