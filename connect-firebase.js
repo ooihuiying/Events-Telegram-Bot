@@ -35,6 +35,7 @@ class FirebaseWrapper {
       let events = [];
       snapshot.forEach(eventObj => {
         let event = Event.fromJSON(eventObj.val());
+        event.setKey(eventObj.key);
         if (event.name.toLowerCase().includes(keyword))
           events.push(event);
       });
@@ -47,8 +48,9 @@ class FirebaseWrapper {
       let events = [];
       snapshot.forEach(eventObj => {
         const event = Event.fromJSON(eventObj.val());
+        console.log(event.tags);
         if(event.tags.some(eventTag => eventTag === tag)) {
-          events.push()
+          events.push(event)
         }
       });
       return events;
