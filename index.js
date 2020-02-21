@@ -63,12 +63,9 @@ function registerUser(text, chatID, session) {
       fbUsers.putNewUser(rg.finalize()).then(test => {
         bot.sendMessage(chatID, "Successfully registered!");
       });
-      // fbUsers add to fb
     } else if (rg.traits === TRAITS.House) {
-      // Show options to select
       bot.sendMessage(chatID, getRegisterMessage(rg.traits), HOUSE_OPTIONS);
     } else if (rg.traits === TRAITS.IsMuted) {
-      // Show options to select
       bot.sendMessage(chatID, getRegisterMessage(rg.traits), YES_NO_OPTIONS);
     } else {
       bot
