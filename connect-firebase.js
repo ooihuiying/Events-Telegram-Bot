@@ -1,5 +1,6 @@
-const Event = require("./event")
+const Event = require("./event");
 const firebase = require("firebase");
+const User = require("./user");
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -31,26 +32,27 @@ class FirebaseWrapper {
   }
 
   getEventsByKeyword(keyword) {
-    return this._ref.once("value").then(snapshot => {
-      let events = [];
-      snapshot.forEach(eventObj => {
-        let event = Event.fromJSON(eventObj.val());
-        event.setKey(eventObj.key);
-        if (event.name.toLowerCase().includes(keyword))
-          events.push(event);
-      });
-      return events;
-    }).catch(console.error);
+    return this._ref
+      .once("value")
+      .then(snapshot => {
+        let events = [];
+        snapshot.forEach(eventObj => {
+          let event = Event.fromJSON(eventObj.val());
+          event.setKey(eventObj.key);
+          if (event.name.toLowerCase().includes(keyword)) events.push(event);
+        });
+        return events;
+      })
+      .catch(console.error);
   }
 
-  getEventsByTag(tag, callback) {
+  getEventsByTag(tag) {
     return this._ref.once("value").then(snapshot => {
       let events = [];
       snapshot.forEach(eventObj => {
         const event = Event.fromJSON(eventObj.val());
-        console.log(event.tags);
-        if(event.tags.some(eventTag => eventTag === tag)) {
-          events.push(event)
+        if (event.tags.some(eventTag => eventTag === tag)) {
+          events.push(event);
         }
       });
       return events;
@@ -87,15 +89,38 @@ class FirebaseWrapper {
       });
   }
 
+  getUserByChatID(chatID) {
+    return this._ref
+      .orderByChild("telegramID")
+      .equalTo(chatID)
+      .once("value")
+      .then(snapshot => {
+        let key = -1;
+        snapshot.forEach(eventObj => {
+          key = eventObj.key;
+        });
+        return key;
+      });
+  }
+
   putNewEvent(event) {
     const newEventRef = this._ref.push();
     const eventData = event.toJSON();
     return newEventRef.set(eventData);
   }
 
-  updateEvent(event, key) {
-
+  // If user already exists in the fb, will do update instead
+  putNewUser(user) {
+    const newUserRef = this._ref.push();
+    const userData = user.toJSON();
+    return this.getUserByChatID(user.telegramID).then(existingKey => {
+      if (existingKey) {
+        return this._ref.child(`${existingKey}`).update(userData);
+      } else return newUserRef.set(userData);
+    });
   }
+
+  updateEvent(event, key) {}
 }
 
 module.exports = FirebaseWrapper;

@@ -1,23 +1,51 @@
 module.exports = {
-  DISPLAY_TEXT_ONE_TIME:
-    "☘<i>~One Time Event~</i>☘<pre>\n</pre>" +
-    "<b>Name: </b> {NAME} <pre>\n</pre><b>Start Time: </b> {START TIME} <pre>\n</pre><b>Start Date: </b> {START DATE} <pre>\n</pre><b>End Time: </b> {END TIME} <pre>\n</pre><b>End Date: </b> {END DATE} <pre>\n</pre><b>Venue: </b> {VENUE} <pre>\n</pre><b>Description: </b> {DESCRIPTION}",
-  DISPLAY_TEXT_WEEKLY:
-    "🌓🌤<i>~Weekly~</i>🌤🌓<pre>\n</pre>" +
-    "<b>Name: </b> {NAME} <pre>\n</pre><b>Start Time: </b> {START TIME} <pre>\n</pre><b>End Time: </b> {END TIME} <pre>\n</pre><b>Day: </b> {DAY} <pre>\n</pre><b>Venue: </b> {VENUE} <pre>\n</pre><b>Description: </b> {DESCRIPTION}",
   WELCOME: "Hi, Welcome to RVRC events bot. Try out our commands.",
   WELCOME_COMMANDS: {
     reply_markup: {
-    one_time_keyboard: true,
+      one_time_keyboard: true,
       inline_keyboard: [
-        [{
-          text: "View All",
-          callback_data: "command-view-all"
-        }, {
-          text: "Browse",
-          callback_data: "command-browse"
-        }]
-  ]}},
+        [
+          {
+            text: "View All",
+            callback_data: "command-view-all"
+          },
+          {
+            text: "Browse",
+            callback_data: "command-browse"
+          }
+        ]
+      ]
+    }
+  },
+  HOUSE_OPTIONS: {
+    reply_markup: {
+      one_time_keyboard: true,
+      inline_keyboard: [
+        [
+          {
+            text: "Rusa",
+            callback_data: "Rusa"
+          },
+          {
+            text: "Panthera",
+            callback_data: "Panthera"
+          },
+          {
+            text: "Aeonix",
+            callback_data: "Aeonix"
+          },
+          {
+            text: "Chelonia",
+            callback_data: "Chelonia"
+          },
+          {
+            text: "Strix",
+            callback_data: "Strix"
+          }
+        ]
+      ]
+    }
+  },
   BROWSE_EVENTS_OPTIONS: {
     reply_markup: {
       one_time_keyboard: true,
@@ -49,7 +77,77 @@ module.exports = {
       ]
     }
   },
+  DAILY_OPTIONS: {
+    reply_markup: {
+      one_time_keyboard: true,
+      inline_keyboard: [
+        [
+          {
+            text: "Monday",
+            callback_data: "Monday"
+          }
+        ],
+        [
+          {
+            text: "Tuesday",
+            callback_data: "Tuesday"
+          }
+        ],
+        [
+          {
+            text: "Wednesday",
+            callback_data: "Wednesday"
+          }
+        ],
+        [
+          {
+            text: "Thursday",
+            callback_data: "Thursday"
+          }
+        ],
+        [
+          {
+            text: "Friday",
+            callback_data: "Friday"
+          }
+        ],
+        [
+          {
+            text: "Saturday",
+            callback_data: "Saturday"
+          }
+        ],
+        [
+          {
+            text: "Sunday",
+            callback_data: "Sunday"
+          }
+        ]
+      ]
+    }
+  },
+  YES_NO_OPTIONS: {
+    reply_markup: {
+      one_time_keyboard: true,
+      inline_keyboard: [
+        [
+          {
+            text: "Yes",
+            callback_data: "Yes"
+          }
+        ],
+        [
+          {
+            text: "No",
+            callback_data: "No"
+          }
+        ]
+      ]
+    }
+  },
   SEARCH_NAME_SYNTAX: "Please add a keyword behind: /searchname keyword",
   SEARCH_TAG_SYNTAX: "Please add a keyword behind: /searchtag keyword",
-  END_OF_QUERY: "🌅<i>~No Events Found!~</i>🌄"
+  END_OF_QUERY: "🌅<i>~No Events Found!~</i>🌄",
+  TAG_KEYWORD: `Please enter keywords of events that you are interested in (separated by a comma)`,
+  NOTIFICATIONS_KEYWORD: `Do you want to receive notifications?`
 };
