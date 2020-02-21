@@ -259,7 +259,14 @@ function getBuilderMessage(mode) {
   let key = "";
   for (let i in MODE) {
     if (MODE.hasOwnProperty(i) && MODE[i] === mode) {
-      key = i;
+      if (i == "Start") {
+        key = NOTIFICATIONS_KEYWORD;
+      } else if (i == "End") {
+      } else if (i == "Tags") {
+        key = TAG_KEYWORD;
+      } else {
+        key = `Please enter event ${key.toLowerCase()}`;
+      }
       break;
     }
   }
@@ -270,13 +277,12 @@ function getRegisterMessage(traits) {
   let key = "";
   for (let i in TRAITS) {
     if (TRAITS.hasOwnProperty(i) && TRAITS[i] === traits) {
-      key = i;
-      if (key == "IsMuted") {
+      if (i == "IsMuted") {
         key = NOTIFICATIONS_KEYWORD;
-      } else if (key == "Tags") {
+      } else if (i == "Tags") {
         key = TAG_KEYWORD;
       } else {
-        key = `Please enter your ${key.toLowerCase()}`;
+        key = `Please enter your ${i.toLowerCase()}`;
       }
       break;
     }
