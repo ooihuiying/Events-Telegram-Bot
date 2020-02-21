@@ -11,3 +11,8 @@
 - /allevents: view all events saved in the db
 - /searchname keyword: view all events with name containing keyword
 - /searchtag keyword: view all events with tags containing keyword
+- /start: add user record to fb
+
+#### restricted commands
+
+- /create: add new event to fb
