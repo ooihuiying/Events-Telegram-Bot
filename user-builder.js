@@ -52,14 +52,6 @@ class UserBuilder {
         this.isMuted = value;
         this.traits = TRAITS.Final;
         break;
-      //   case TRAITS.TelegramID:
-      //     this.telegramID = value;
-      //     // this.traits = TRAITS.Permissions;
-      //     break;
-      //   case TRAITS.Permissions:
-      //     this.permissions = value;
-      //     // this.traits = TRAITS.Final;
-      //     break;
       default:
         throw new Error(`traits does not accept values: ${this.traits}`);
     }

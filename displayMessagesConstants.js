@@ -148,6 +148,9 @@ module.exports = {
   SEARCH_NAME_SYNTAX: "Please add a keyword behind: /searchname keyword",
   SEARCH_TAG_SYNTAX: "Please add a keyword behind: /searchtag keyword",
   END_OF_QUERY: "🌅<i>~No Events Found!~</i>🌄",
-  TAG_KEYWORD: `Please enter keywords of events that you are interested in (separated by a comma)`,
-  NOTIFICATIONS_KEYWORD: `Do you want to receive notifications?`
+  TAG_KEYWORD:
+    "Please enter keywords of events that you are interested in (separated by a comma)",
+  TAG_EVENT_KEYWORD: "Please enter keywords associated with this event",
+  NOTIFICATIONS_KEYWORD: "Do you want to receive notifications?",
+  DATE: "Please enter {XXX} date in the format YYYY-MM-DD HH:MM"
 };

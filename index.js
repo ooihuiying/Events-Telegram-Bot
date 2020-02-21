@@ -21,6 +21,7 @@ const {
   HOUSE_OPTIONS,
   YES_NO_OPTIONS,
   TAG_KEYWORD,
+  TAG_EVENT_KEYWORD,
   NOTIFICATIONS_KEYWORD
 } = require("./displayMessagesConstants");
 
@@ -81,7 +82,6 @@ function registerUser(text, chatID, session) {
 bot.on("message", msg => {
   const chatId = msg.chat.id;
   const session = getSession(chatId);
-
   if (session.isBuilding) {
     const eb = session.builder;
     if (eb) {
@@ -93,7 +93,7 @@ bot.on("message", msg => {
       if (eb.mode === MODE.Final) {
         session.isBuilding = false;
         fb.putNewEvent(eb.finalize()).then(() => {
-          bot.sendMessage(msg.chat.id, "Event added");
+          bot.sendMessage(msg.chat.id, "Event added!");
         });
       } else
         bot
@@ -152,7 +152,6 @@ bot.onText(/\/create/, msg => {
   const session = getSession(msg.chat.id);
   session.isBuilding = true;
   session.builder = new EventBuilder(MODE.Name);
-
   bot.sendMessage(msg.chat.id, getBuilderMessage(session.builder.mode));
 });
 
@@ -160,7 +159,6 @@ bot.onText(/\/start/, msg => {
   const session = getSession(msg.chat.id);
   session.isRegistering = true;
   session.register = new UserBuilder(TRAITS.Name);
-
   bot.sendMessage(msg.chat.id, getRegisterMessage(session.register.traits));
 });
 
@@ -260,17 +258,21 @@ function getBuilderMessage(mode) {
   for (let i in MODE) {
     if (MODE.hasOwnProperty(i) && MODE[i] === mode) {
       if (i == "Start") {
-        key = NOTIFICATIONS_KEYWORD;
+        key = "Please enter start date time"; // TO EDIT -> Let user know format?
       } else if (i == "End") {
+        key = "Please enter end date time";
       } else if (i == "Tags") {
-        key = TAG_KEYWORD;
+        key = TAG_EVENT_KEYWORD;
+      } else if (i == "Type") {
+        key =
+          "Enter 'once' if it is a one time event. Otherwise, enter 'weekly'. (Without apostrophe)";
       } else {
-        key = `Please enter event ${key.toLowerCase()}`;
+        key = `Please enter event ${i.toLowerCase()}`;
       }
       break;
     }
   }
-  return `Please enter ${key.toLowerCase()}`;
+  return key;
 }
 
 function getRegisterMessage(traits) {
