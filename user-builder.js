@@ -41,6 +41,15 @@ class UserBuilder {
         this.traits = TRAITS.House;
         break;
       case TRAITS.House:
+        if (
+          value != "Chelonia" &&
+          value != "Rusa" &&
+          value != "Panthera" &&
+          value != "Strix" &&
+          value != "Aeonix"
+        ) {
+          throw new Error("Input not accepted");
+        }
         this.house = value;
         this.traits = TRAITS.Tags;
         break;
@@ -49,6 +58,9 @@ class UserBuilder {
         this.traits = TRAITS.IsMuted;
         break;
       case TRAITS.IsMuted:
+        if (value != "Yes" && value != "No") {
+          throw new Error("Input not accepted");
+        }
         this.isMuted = value;
         this.traits = TRAITS.Final;
         break;

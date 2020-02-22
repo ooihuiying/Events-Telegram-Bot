@@ -61,7 +61,7 @@ class FirebaseWrapper {
 
   getEventsByDates(startingStart, endingStart) {
     return this._ref
-      .orderByChild("Start Date")
+      .orderByChild("start")
       .startAt(startingStart)
       .endAt(endingStart)
       .once("value")
@@ -76,7 +76,7 @@ class FirebaseWrapper {
 
   getEventsByDay(day) {
     return this._ref
-      .orderByChild("Day")
+      .orderByChild("day")
       .equalTo(day)
       .once("value")
       .then(snapshot => {
