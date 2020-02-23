@@ -12,6 +12,9 @@
 - /searchname keyword: view all events with name containing keyword
 - /searchtag keyword: view all events with tags containing keyword
 - /start: add user record to fb
+- /subscribe: to receive notifications of relevant tags on newly added events
+- /unsubscribe: stop receiving notifications
+- exit: to stop registration of user or adding of event
 
 #### restricted commands
 
