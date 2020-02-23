@@ -3,17 +3,17 @@ const moment = require("moment");
 
 let i = 0;
 MODE = {
-  "Idle": i++,
-  "Edit": i++,
-  "Create": i++,
-  "Name": i++,
-  "Tags": i++,
-  "Start": i++,
-  "End": i++,
-  "Venue": i++,
-  "Description": i++,
-  "Type": i++,
-  "Final": i++
+  Idle: i++,
+  Edit: i++,
+  Create: i++,
+  Name: i++,
+  Tags: i++,
+  Start: i++,
+  End: i++,
+  Venue: i++,
+  Description: i++,
+  Type: i++,
+  Final: i++
 };
 
 class EventBuilder {
@@ -85,7 +85,15 @@ class EventBuilder {
   }
 
   finalize() {
-    return new Event(this.name, this.tags, this.start, this.end, this.venue, this.description, this.type);
+    return new Event(
+      this.name,
+      this.tags,
+      this.start,
+      this.end,
+      this.venue,
+      this.description,
+      this.type
+    );
   }
 }
 

@@ -28,12 +28,30 @@ const {
 const fb = require("./connect-firebase").ref("Events");
 const fbUsers = require("./connect-firebase").ref("Users");
 
+// Gets triggered whenever new unpublished events are added to "Events" fb.
+fb.updateUserOfNewEvents(event => {
+  // Get all the users with IsMuted=No and with relevant tags and house.
+  if (event) {
+    return fbUsers
+      .getAllUsers(event.tags)
+      .then(usersTelegramIDs => {
+        if (usersTelegramIDs.length) {
+          Promise.all(
+            usersTelegramIDs.map(chatID => replyWithEvents(chatID, [event]))
+          );
+        }
+      })
+      .catch(e => console.log(e));
+  }
+});
+
 function replyWithEvents(chatId, events) {
   if (events.length) {
     let combinedMessage = events.reduce(
       (acc, event) => acc + event.format() + "\n\n",
       ""
     );
+    console.log("sent");
     bot.sendMessage(chatId, combinedMessage, {
       parse_mode: "HTML"
     });
@@ -79,6 +97,15 @@ function registerUser(text, chatID, session) {
 bot.on("message", msg => {
   const chatId = msg.chat.id;
   const session = getSession(chatId);
+
+  if (msg.text.toLowerCase() === "exit") {
+    // User wants to stop registering/adding event
+    session.isBuilding = false;
+    session.builder = null;
+    session.isRegistering = false;
+    session.register = null;
+  }
+
   if (session.isBuilding) {
     const eb = session.builder;
     if (eb) {
@@ -157,6 +184,24 @@ bot.onText(/\/start/, msg => {
   session.isRegistering = true;
   session.register = new UserBuilder(TRAITS.Name);
   bot.sendMessage(msg.chat.id, getRegisterMessage(session.register.traits));
+});
+
+bot.onText(/\/subscribe/, msg => {
+  console.log("subscribed");
+  fbUsers.setUserIsMutedAttribute(msg.chat.id, "No").then(() =>
+    bot.sendMessage(msg.chat.id, "Successfully Subscribed!", {
+      parse_mode: "HTML"
+    })
+  );
+});
+
+bot.onText(/\/unsubscribe/, msg => {
+  console.log("unsubscribed");
+  fbUsers.setUserIsMutedAttribute(msg.chat.id, "Yes").then(() =>
+    bot.sendMessage(msg.chat.id, "Successfully Unsubscribed!", {
+      parse_mode: "HTML"
+    })
+  );
 });
 
 bot.on("callback_query", response => {

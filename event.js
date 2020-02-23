@@ -55,7 +55,6 @@ class Event {
   setKey(key) {
     this.key = key;
   }
-
   format() {
     // TODO
     const title = `<b><u>${this.name}</u></b>\n`;

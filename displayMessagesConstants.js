@@ -151,5 +151,5 @@ module.exports = {
   TAG_KEYWORD:
     "Please enter keywords of events that you are interested in (separated by a comma)",
   TAG_EVENT_KEYWORD: "Please enter keywords associated with this event",
-  NOTIFICATIONS_KEYWORD: "Do you want to receive notifications?"
+  NOTIFICATIONS_KEYWORD: "Do you want to mute notifications?"
 };
