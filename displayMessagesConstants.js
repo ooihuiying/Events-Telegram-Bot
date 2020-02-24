@@ -31,8 +31,8 @@ module.exports = {
             callback_data: "Panthera"
           },
           {
-            text: "Aeonix",
-            callback_data: "Aeonix"
+            text: "Aonyx",
+            callback_data: "Aonyx"
           },
           {
             text: "Chelonia",

@@ -28,22 +28,20 @@ const {
 const fb = require("./connect-firebase").ref("Events");
 const fbUsers = require("./connect-firebase").ref("Users");
 
-// Gets triggered whenever new unpublished events are added to "Events" fb.
-fb.updateUserOfNewEvents(event => {
+// Pass in a single event
+function sendNotificationsToUsers(event) {
   // Get all the users with IsMuted=No and with relevant tags and house.
-  if (event) {
-    return fbUsers
-      .getAllUsers(event.tags)
-      .then(usersTelegramIDs => {
-        if (usersTelegramIDs.length) {
-          Promise.all(
-            usersTelegramIDs.map(chatID => replyWithEvents(chatID, [event]))
-          );
-        }
-      })
-      .catch(e => console.log(e));
-  }
-});
+  return fbUsers
+    .getAllUsers(event.tags)
+    .then(usersTelegramIDs => {
+      if (usersTelegramIDs.length) {
+        Promise.all(
+          usersTelegramIDs.map(chatID => replyWithEvents(chatID, [event]))
+        );
+      }
+    })
+    .catch(e => console.log(e));
+}
 
 function replyWithEvents(chatId, events) {
   if (events.length) {
@@ -51,7 +49,6 @@ function replyWithEvents(chatId, events) {
       (acc, event) => acc + event.format() + "\n\n",
       ""
     );
-    console.log("sent");
     bot.sendMessage(chatId, combinedMessage, {
       parse_mode: "HTML"
     });
@@ -116,9 +113,14 @@ bot.on("message", msg => {
       }
       if (eb.mode === MODE.Final) {
         session.isBuilding = false;
-        fb.putNewEvent(eb.finalize()).then(() => {
-          bot.sendMessage(msg.chat.id, "Event added!");
-        });
+        fb.putNewEvent(eb.finalize())
+          .then(() => {
+            bot.sendMessage(msg.chat.id, "Event added!");
+          })
+          .then(() => {
+            // Send notifications to users
+            sendNotificationsToUsers(eb.finalize());
+          });
       } else
         bot
           .sendMessage(msg.chat.id, getBuilderMessage(eb.mode))

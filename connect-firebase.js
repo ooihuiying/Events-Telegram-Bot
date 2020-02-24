@@ -1,19 +1,6 @@
 const Event = require("./event");
-const firebase = require("firebase-admin");
 const User = require("./user");
-
-const firebaseAdminSDK = {
-  type: "service_account",
-  project_id: "rvrc-events-bot",
-  private_key_id: process.env.PRIVATE_KEY_ID,
-  private_key: process.env.PRIVATE_KEY,
-  client_email: process.env.CLIENT_EMAIL,
-  client_id: "101927109479737139744",
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://oauth2.googleapis.com/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.CLIENT_X509_CERT_URL
-};
+const firebase = require("firebase");
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -23,8 +10,7 @@ const firebaseConfig = {
   storageBucket: "rvrc-events-bot.appspot.com",
   FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.FIREBASE_API_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-  credential: firebase.credential.cert(firebaseAdminSDK)
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -123,7 +109,6 @@ class FirebaseWrapper {
   putNewEvent(event) {
     const newEventRef = this._ref.push();
     let eventData = event.toJSON();
-    eventData.published = false;
     return newEventRef.set(eventData);
   }
 
@@ -171,26 +156,6 @@ class FirebaseWrapper {
         return matchingUsersTelegramID;
       })
       .catch(console.error);
-  }
-
-  // Using callback here instead of Promise because
-  // on() method does not return a promise object...?
-  // https://firebase.google.com/docs/reference/js/firebase.database.Query#on
-  updateUserOfNewEvents(callback) {
-    return this._ref
-      .orderByChild("published")
-      .equalTo(false)
-      .on("child_added", snapshot => {
-        const eventFBKey = snapshot.key;
-        const event = snapshot.val();
-        const post = Event.fromJSON(event);
-        // Set published attribute of Event to be True
-        // This published attribute has not been set to be part of
-        // Event object...
-        event.published = true;
-        this._ref.child(`${eventFBKey}`).update(event);
-        return callback(post);
-      });
   }
 
   updateEvent(event, key) {}
